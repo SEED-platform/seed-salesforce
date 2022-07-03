@@ -42,13 +42,29 @@ from pathlib import Path
 from seed_salesforce.salesforce_client import SalesforceClient
 
 
-class SalesforceConnectionTest(unittest.TestCase):
+class SalesforceClientTest(unittest.TestCase):
     def test_init_by_file(self):
         config_file = Path('salesforce-config-dev.json')
         sf = SalesforceClient(connection_config_filepath=config_file)
         # check if the Salesforce connection has the base_url method and that it is not None
         assert hasattr(sf.connection, 'base_url')
         assert sf.connection.base_url is not None
+
+    def test_render_mappings(self):
+        config_file = Path('salesforce-config-dev.json')
+        sf = SalesforceClient(connection_config_filepath=config_file)
+        
+        context = {
+            "labels": "",
+            "address": "123 Main St",
+            "city": "Springfield",
+            "state": "Unknown",
+            "postal_code": "80401",
+        }
+        result = sf.render_mappings('seed-salesforce-benchmarking.json.template', context)
+        assert result['ShippingStreet'] == '123 Main St'
+        assert result['ShippingCity'] == 'Springfield'
+        assert result['ShippingState'] == 'Unknown'
 
 
 class SalesforceIntegrationTest(unittest.TestCase):

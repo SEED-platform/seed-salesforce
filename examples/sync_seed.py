@@ -44,19 +44,18 @@ for upload_id in to_upload[0]['is_applied']:
     state = addr.get('StateName', prop['state'].get('state', ''))
     postal_code = addr.get('ZipCode', prop['state'].get('postal_code', ''))
 
-    property_data_map = {
-        'AccountNumber': '',
-        'TickerSymbol': 'In Violation',
-        'ShippingStreet': address_str,
-        'ShippingCity': city,
-        'ShippingState': state,
-        'ShippingPostalCode': postal_code,
-    }
-
+    context = client.salesforce.render_mappings('seed-salesforce-benchmarking.json.template', {
+        "labels": "In Violation",
+        "address": address_str,
+        "city": city,
+        "state": state,
+        "postal_code": postal_code,
+	})
+    
     if sf_property:
-        sf_prop = client.salesforce.update_property_by_id(sf_property['Id'], update_data=property_data_map)
+        sf_prop = client.salesforce.update_property_by_id(sf_property['Id'], update_data=context)
     else:
-        sf_prop = client.salesforce.create_property(prop['state']['property_name'], **property_data_map)
+        sf_prop = client.salesforce.create_property(prop['state']['property_name'], **context)
     print(sf_prop)
 
     # remove the Upload label?

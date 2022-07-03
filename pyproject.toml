@@ -32,6 +32,7 @@ py-seed = { path = "../py-seed", develop = true}
 
 simple-salesforce = "^1.11.6"
 usaddress = ">0"
+Jinja2 = "^3.1.2"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "1.5.4"
