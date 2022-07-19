@@ -55,7 +55,7 @@ in with the correct credentials. The format of the SEED configuration should con
 
 ### Running Tests
 
-Make sure to add and configure the SEED and Salesforce configuration files. Note that they must be named `seed-config-dev-local.json` and `salesforce-config-dev.json` for the tests to run correctly.
+Make sure to add and configure the SEED and Salesforce configuration files. Note that they must be named `seed-config-dev.json` and `salesforce-config-dev.json` for the tests to run correctly.
 
 Run the tests using:
 

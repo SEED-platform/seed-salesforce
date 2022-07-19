@@ -42,6 +42,7 @@ from pathlib import Path
 
 import requests
 from simple_salesforce import Salesforce
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 _log = logging.getLogger(__name__)
 
@@ -79,6 +80,14 @@ class SalesforceClient(object):
         )
         self.mdapi = self.connection.mdapi
 
+        self._template_dir = Path(__file__).parent / "default_mappings"
+        if not Path(self._template_dir).exists():
+            raise Exception(f'Invalid coupling. Missing {self._template_dir} directory.')
+
+        self._template_env = Environment(
+            loader=FileSystemLoader(searchpath=self._template_dir),
+            undefined=StrictUndefined)
+
     @classmethod
     def read_connection_config_file(cls, filepath: Path) -> dict:
         """Read in the connection config file and return the connection params. The format in the file must incude:
@@ -98,6 +107,21 @@ class SalesforceClient(object):
 
         connection_params = json.load(open(filepath))
         return connection_params
+
+    def render_mappings(self, template_name: str, context: dict) -> dict:
+        """Render the mappings template.
+
+        Args:
+            template_name (str): name of the template file to render
+            context (dict): context to render the template with
+
+        Returns:
+            dict: rendered mappings in a dictionary format, meaning that the
+            rendered file is loaded into memory and returned as a dictionary.
+        """
+        rendered = self._template_env.get_template(template_name).render(context)
+        return json.loads(rendered)
+
 
     def get_property_by_account_id(self, account_id: str) -> dict:
         """Return the property by the account ID.
