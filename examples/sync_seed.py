@@ -35,8 +35,9 @@ for upload_id in to_upload[0]['is_applied']:
     prop = client.seed.get_property(upload_id)
     print(prop)
 
+    # find the property in salesforce, and if it doesn't then create it in salesforce
     sf_property = client.salesforce.find_properties_by_name(prop['state']['property_name'])
-
+    
     addr = usaddress.tag(prop['state']['address_line_1'])[0]
 
     address_str = f"{addr.get('AddressNumber', '')} {addr.get('StreetName', '')} {addr.get('StreetNamePostType', '')}"
@@ -57,5 +58,8 @@ for upload_id in to_upload[0]['is_applied']:
     else:
         sf_prop = client.salesforce.create_property(prop['state']['property_name'], **context)
     print(sf_prop)
+
+    # add the benchmarking record
+    sf_property = client.salesforce.find_benchmark_by_id(prop['state']['salesforce_id'])
 
     # remove the Upload label?

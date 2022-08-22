@@ -288,13 +288,24 @@ class SalesforceClient(object):
         # TODO: need to figur out how to assign a contact
         return None
 
-    def create_custom_field(self, name, length: int, description):
+    def create_custom_field(self, object_name: str, field_name: str, length: int, description: str) -> dict:
+        """Right now this only creates a new string field of "LongTextArea"
+
+        Args:
+            object_name (str): Name of the salesforce object (table), e.g., Account, Benchmarking
+            field_name (str): Name of the field to create with no spaces
+            length (int): Length of field
+            description (str): Description of the field
+
+        Returns:
+            dict: _description_
+        """        
         length = 256 if length < 256 else length
 
         # check if the field already exists
         custom_field = self.mdapi.CustomField(
-            label=name,
-            fullName=f"Account.{name}__c",  # Field name (format has to be CustomObject.FieldName)
+            label=field_name,
+            fullName=f"{object_name}.{field_name}__c",
             type=self.mdapi.FieldType("LongTextArea"),
             length=length,
             description=description,
