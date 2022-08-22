@@ -2,10 +2,11 @@
 
 # ./manage.py create_test_user_json --username nicholas.long@nrel.gov --file ../py-seed/seed-config.json --pyseed
 
+import os
+import sys
 from pathlib import Path
 
 import usaddress
-import os, sys
 
 from seed_salesforce.seed_salesforce import SeedSalesforce
 
@@ -37,7 +38,7 @@ for upload_id in to_upload[0]['is_applied']:
 
     # find the property in salesforce, and if it doesn't then create it in salesforce
     sf_property = client.salesforce.find_properties_by_name(prop['state']['property_name'])
-    
+
     addr = usaddress.tag(prop['state']['address_line_1'])[0]
 
     address_str = f"{addr.get('AddressNumber', '')} {addr.get('StreetName', '')} {addr.get('StreetNamePostType', '')}"
@@ -51,8 +52,8 @@ for upload_id in to_upload[0]['is_applied']:
         "city": city,
         "state": state,
         "postal_code": postal_code,
-	})
-    
+    })
+
     if sf_property:
         sf_prop = client.salesforce.update_property_by_id(sf_property['Id'], update_data=context)
     else:

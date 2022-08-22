@@ -41,8 +41,8 @@ import logging
 from pathlib import Path
 
 import requests
-from simple_salesforce import Salesforce
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from simple_salesforce import Salesforce
 
 _log = logging.getLogger(__name__)
 
@@ -121,7 +121,6 @@ class SalesforceClient(object):
         """
         rendered = self._template_env.get_template(template_name).render(context)
         return json.loads(rendered)
-
 
     def get_property_by_account_id(self, account_id: str) -> dict:
         """Return the property by the account ID.
@@ -299,7 +298,7 @@ class SalesforceClient(object):
 
         Returns:
             dict: _description_
-        """        
+        """
         length = 256 if length < 256 else length
 
         # check if the field already exists

@@ -53,7 +53,7 @@ class SalesforceClientTest(unittest.TestCase):
     def test_render_mappings(self):
         config_file = Path('salesforce-config-dev.json')
         sf = SalesforceClient(connection_config_filepath=config_file)
-        
+
         context = {
             "labels": "",
             "address": "123 Main St",
