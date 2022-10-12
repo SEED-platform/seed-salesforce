@@ -56,7 +56,7 @@ class SalesforceClientTest(unittest.TestCase):
 
         context = {
             "labels": "",
-            "address": "123 Main St",
+            "address_line_1": "123 Main St",
             "city": "Springfield",
             "state": "Unknown",
             "postal_code": "80401",
@@ -96,6 +96,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         }
         account = self.sf.create_property(test_property_name, **details)
         account_id = account['Id']
+        # print(f"ACCOUNT ID: {account_id}")
         assert account['Name'] == test_property_name
         assert account['Type'] == 'Ice Cream Shop'
         assert account_id is not None
@@ -108,15 +109,37 @@ class SalesforceIntegrationTest(unittest.TestCase):
         success = self.sf.delete_property_by_id(account_id)
         assert success
 
-    def test_custom_field(self):
-        self.sf.create_custom_field('TestField', 255, 'Just enter something here for testing')
 
-    def test_write_to_salesforce(self):
-        account = self.sf.find_properties_by_name(self.test_org)
+    def test_update_salesforce(self):
+        test_property_name = 'A Fake Property'
+        details = {
+            'Type': 'Office',
+            'Phone': '555-867-5309',
+            'Website': 'http://www.scrumptiousco.com'
+        }
+        account = self.sf.create_property(test_property_name, **details)
         account_id = account['Id']
 
-        self.sf.update_property_by_id(account_id, {
-            'AccountNumber': '4815162343',
+        success = self.sf.update_property_by_id(account_id, {
+            'Phone': '444-444-4444',
+            'Website': 'http://www.UpdatedWebsite.com'
         })
+        assert success
 
+        # contacts
+        # create contact (associated with account)
         self.sf.create_or_update_contact_on_account('user@company.com', 'Richard', 'Hendrick', account_id)
+        # retrieve contact
+        contact = self.sf.find_contact_by_email('user@company.com')
+        assert contact['AccountId'] == account_id 
+
+        # update contact (can't change email)
+        self.sf.create_or_update_contact_on_account('user@company.com', 'Russ', 'Hanneman', account_id)
+        assert contact['AccountId'] == account_id 
+
+        # now delete it to cleanup
+        success = self.sf.delete_property_by_id(account_id)
+        assert success
+
+    # def test_custom_field(self):
+    #     self.sf.create_custom_field('TestField', 255, 'Just enter something here for testing')

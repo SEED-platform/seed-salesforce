@@ -78,6 +78,7 @@ class SalesforceClient(object):
             **connect_info,
             session=self.session
         )
+
         self.mdapi = self.connection.mdapi
 
         self._template_dir = Path(__file__).parent / "default_mappings"
@@ -215,6 +216,7 @@ class SalesforceClient(object):
 
         if account:
             raise Exception(f"Contact {email} already exists.")
+
         else:
             new_record = self.connection.Contact.create({
                 'Email': email,
@@ -227,6 +229,30 @@ class SalesforceClient(object):
                 return account
             else:
                 raise Exception(f"Failed to create contact {email} with error: {new_record['errors']}")
+
+    def update_contact(self, contact_id: str, **kwargs) -> dict:
+        """Update an existing Contact.
+
+        Args:
+            contact_id (str): id of contact to update
+            **kwargs: additional parameters to update
+
+        Raises:
+            Exception: Error updating record
+
+        Returns:
+            dict: OrderedDict([
+        """
+        updated_record = self.connection.Contact.update(contact_id, {
+            **kwargs
+        })
+
+        if updated_record == 204:
+            account = self.connection.Contact.get(contact_id)
+            return account
+        else:
+            raise Exception(f"Failed to update contact {email} with error: {updated_record['errors']}")
+
 
     def update_property_by_id(self, account_id: str, update_data: dict) -> dict:
         """Update the fields of an existing property on Salesforce
@@ -275,16 +301,14 @@ class SalesforceClient(object):
 
         # find the contact
         contact = self.find_contact_by_email(contact_email)
+        
         if not contact:
-            contact = self.create_contact(contact_email, FirstName=contact_first_name, LastName=contact_last_name)
-
-        # get the account record
-        self.get_property_by_account_id(account_id)
-        # figure out how to add the contact to the account
-
-        # self.update_property_by_id(account_id, {'Contact__c': contact['Id']})
-
-        # TODO: need to figur out how to assign a contact
+            # create and assign to account
+            contact = self.create_contact(contact_email, FirstName=contact_first_name, LastName=contact_last_name, AccountId=account_id)
+        else:
+            # update contact with name and account Id, etc?
+            contact = self.update_contact(contact['Id'], FirstName=contact_first_name, LastName=contact_last_name, AccountId=account_id)
+    
         return None
 
     def create_custom_field(self, object_name: str, field_name: str, length: int, description: str) -> dict:

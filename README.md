@@ -37,6 +37,8 @@ in with the correct credentials. The format of the Salesforce should contain the
 }
 ```
 
+**IMPORTANT:** if you are connecting to a sandbox Salesforce environment, make sure to add "domain": "test" to the `salesforce-config-dev.json` file or authentication will fail.
+
 #### SEED
 
 Copy `seed-config-example.json` to `seed-config-dev.json` and fill
@@ -49,7 +51,8 @@ in with the correct credentials. The format of the SEED configuration should con
     "username": "user@company.com",
     "api_key": "secure-key",
     "port": 443,
-    "use_ssl": true
+    "use_ssl": true,
+    "seed_org_name": "seed-org"
 }
 ```
 

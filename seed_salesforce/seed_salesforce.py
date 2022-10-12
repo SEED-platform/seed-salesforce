@@ -100,12 +100,22 @@ class SeedSalesforce(object):
         """Set the SEED cycle by name
 
         Args:
-            org_name (str): Name of the organizaiton to use
+            org_name (str): Name of the organization to use
         """
         if self.seed.get_org_by_name(org_name, set_org_id=True):
             return True
         else:
             raise Exception(f'Unable to set the org to {org_name}')
+
+    def get_org_by_name(self, org_name: str):
+        """ Get the SEED Org name
+
+        Args: 
+            org_name (str): Name of the organization to use
+        """
+
+        return self.seed.get_org_by_name(org_name)
+
 
     def sync_properties_with_salesforce(self):
         print("doing something here")

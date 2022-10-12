@@ -4,5 +4,6 @@
   "username": "user@company.com",
   "api_key": "secure-key",
   "port": 443,
-  "use_ssl": true
+  "use_ssl": true,
+  "seed_org_name": "test-org"
 }
