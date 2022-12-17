@@ -1,0 +1,7 @@
+{
+	"Id": "{{property["state"]["extra_data"]["Benchmark Salesforce ID"]}}",
+	"Contact_Name__c": "{{contactResults}}",
+	"Property_Data_Administrator__c": "{{adminContactResults}}",
+	"Status__c": "{{statusLabel}}",
+	"SEED_Labels__c": "{{labelNameString}}"
+}

@@ -52,9 +52,18 @@ in with the correct credentials. The format of the SEED configuration should con
     "api_key": "secure-key",
     "port": 443,
     "use_ssl": true,
-    "seed_org_name": "seed-org"
+    "seed_org_name": "seed-org",
+    "indication_label": "Add to Salesforce",
+    "violation_label": "Violation - Insufficient Data",
+    "complied_label": "Complied",
+    "last_update_timestamp": "2001-01-01 12:00:00.000-07:00"
 }
 ```
+
+- `indication_label`: the label text that identifies a record that should be added to Salesforce
+- `violation_label`: the label text that identifies an incomplete/erroneous record that should not be added to Salesforce
+- `complied_label`: the label text that identifies a compliant record
+- `last_update_timestamp`: the last timestamp that the SEED-to-Salesforce workflow was ran, in format: '%Y-%m-%d %H:%M:%S.%f%z'
 
 ### Running Tests
 

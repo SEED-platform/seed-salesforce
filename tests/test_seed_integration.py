@@ -104,64 +104,16 @@ class SeedIntegrationTest(unittest.TestCase):
         # print(f"LABELED bldgs is_applied IDs: {labeled_bldgs[0]['is_applied']}, first bldg id: {the_bldg['property_view_id']}")
         assert the_bldg['property_view_id'] in labeled_bldgs[0]['is_applied']
 
-    def test_sync_with_salesforce(self):
-        # sync with salesforce
+
+    def test_retrieve_seed_properties_for_sync(self):
+        # retrieve cycle (2020 Calendar Year)
+        cycle = self.client.seed.get_cycle_by_name('2020 Calendar Year')
+        print(f"cycle: {cycle}")
+        self.client.set_cycle_by_name('2020 Calendar Year')
         
-        # set cycle
-        cycle = self.client.seed.get_or_create_cycle(
-            'single step upload', 
-            parse('6/1/2021').date(),
-            parse('6/1/2022').date(),
-            set_cycle_id=True)
+        # self.client.sync_properties_with_salesforce()
 
-        # assign label to first record
-        bldgs = self.client.seed.get_buildings()
-        the_bldg = bldgs[0]
-        # print(f"bldg: {the_bldg}")
-        self.client.seed.update_labels_of_buildings(['Upload to Salesforce'], [], [the_bldg['property_view_id']])
 
-        # find the records with the label
-        labeled_bldgs = self.client.seed.get_view_ids_with_label(['Upload to Salesforce'])
 
-        bldgs_to_sf = []
-        for l in labeled_bldgs:
-            # loop through and get all labeled buildings
-            for id in l['is_applied']:
-                find_bldg = next((item for item in bldgs if item['property_view_id'] == id), None)
-                if find_bldg:
-                    bldgs_to_sf.append(find_bldg)
 
-        print(f"found the following buildings to add to salesforce: {[d['property_view_id'] for d in bldgs_to_sf]}")
-        
-        for item in bldgs_to_sf:
-            item['labels'] = ""  # TODO: do we need specific labels here? all of the building's labels?
-
-            # see if this building is in salesforce already (using property_name as unique ID for now)
-            # this would probably all be configured a different way?
-            # TODO: need to figure out the "unique identifer" to find a property in salesforce
-            # print(f"item.items(): {item.items()}")
-            property_name = next( v for k,v in item.items() if k.startswith('property_name_'))
-
-            # print(f"propertyname: {property_name}")
-            item['property_name'] = property_name
-            for field in ['address_line_1', 'city', 'state', 'postal_code']:
-                item[field] = next(v for k,v in item.items() if k.startswith(field))
-           
-            account = self.sf.find_properties_by_name(property_name)
-            # print(f"account: {account}")
-            result = self.sf.render_mappings('seed-salesforce-benchmarking.json.template', item)
-            if account:
-                # update
-                self.sf.update_property_by_id(account['Id'], result)
-            else:
-                # create? (would we actually want to do this?)
-                account = self.sf.create_property(property_name, **result)
-
-            # assert upload
-            sf_record = self.sf.find_properties_by_name(property_name)
-            assert sf_record['Id'] == account['Id']
-
-            # assert delete
-            success = self.sf.delete_property_by_id(account['Id'])
-            assert success
 
