@@ -26,9 +26,9 @@ packages = [
 python = ">=3.7.1, <3.10"
 python-dateutil = "> 0"
 # py-seed = "^0.2.1"
-py-seed = { path = "../py-seed", develop = true}
+# py-seed = { path = "../py-seed", develop = true}
 # careful using github with poetry. Often when calling poetry update, it will not pull down the latest commits and normally requires a removal/recreation of the virtualenv
-# py-seed = { git = "https://github.com/seed-platform/py-seed.git", branch = "add-seed-helpers" }
+py-seed = { git = "https://github.com/seed-platform/py-seed.git", branch = "develop" }
 
 simple-salesforce = "^1.11.6"
 usaddress = ">0"
