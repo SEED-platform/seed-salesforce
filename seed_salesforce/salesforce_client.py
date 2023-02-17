@@ -41,7 +41,6 @@ import logging
 from pathlib import Path
 
 import requests
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from simple_salesforce import Salesforce
 
 _log = logging.getLogger(__name__)
