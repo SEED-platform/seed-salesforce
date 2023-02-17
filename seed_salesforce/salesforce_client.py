@@ -101,7 +101,7 @@ class SalesforceClient(object):
         connection_params = json.load(open(filepath))
         return connection_params
 
-    def render_mappings(self, template_name: str, context) -> dict:
+    def render_mappings(self, template_name: str, context: dict) -> dict:
         """Render the mappings template.
 
         Args:
