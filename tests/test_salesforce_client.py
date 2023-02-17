@@ -51,22 +51,6 @@ class SalesforceClientTest(unittest.TestCase):
         print(f"sf connection: {sf.connection.base_url}")
         assert sf.connection.base_url is not None
 
-#     def test_render_mappings(self):
-#         config_file = Path('salesforce-config-dev.json')
-#         sf = SalesforceClient(connection_config_filepath=config_file)
-
-#         context = {
-#             "labels": "",
-#             "address_line_1": "123 Main St",
-#             "city": "Springfield",
-#             "state": "Unknown",
-#             "postal_code": "80401",
-#         }
-#         result = sf.render_mappings('seed-salesforce-benchmarking.json.template', context)
-#         assert result['ShippingStreet'] == '123 Main St'
-#         assert result['ShippingCity'] == 'Springfield'
-#         assert result['ShippingState'] == 'Unknown'
-
 
 class SalesforceIntegrationTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -82,6 +66,9 @@ class SalesforceIntegrationTest(unittest.TestCase):
         self.test_org = "New Test Account"
         self.test_email = "a-user@somecompany.com"
         self.test_benchmark_name = "Example Benchmarking"
+        self.account_record_type = None
+        self.contact_record_type = "01256000003A9ZN"
+
         return super().setUp()
 
     def test_search_and_create_and_delete_account(self):
@@ -95,6 +82,9 @@ class SalesforceIntegrationTest(unittest.TestCase):
             'Phone': '555-867-5309',
             'Website': 'http://www.scrumptiousco.com',
         }
+        if self.account_record_type:
+            details['RecordTypeID'] = self.account_record_type
+
         account = self.sf.create_account(test_account_name, **details)
         account_id = account['Id']
         # print(f"ACCOUNT ID: {account_id}")
@@ -103,7 +93,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         assert account_id is not None
 
         # Find the record
-        account = self.sf.find_account_by_name(test_property_name)
+        account = self.sf.find_account_by_name(test_account_name)
         assert account['Id'] == account_id
 
         # now delete it to cleanup
@@ -118,6 +108,9 @@ class SalesforceIntegrationTest(unittest.TestCase):
             'Phone': '555-867-5309',
             'Website': 'http://www.scrumptiousco.com'
         }
+        if self.account_record_type:
+            details['RecordTypeID'] = self.account_record_type
+
         account = self.sf.create_account(test_account_name, **details)
         account_id = account['Id']
 
@@ -130,58 +123,70 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # contacts
         # create contact (associated with account)
-        self.sf.create_or_update_contact_on_account('user@company.com', 'Richard', 'Hendrick', account_id)
+        details = {
+            'AccountId': account_id,
+            'LastName': 'Richard Hendrick'
+        }
+        if self.contact_record_type:
+            details['RecordTypeID'] = self.contact_record_type
+
+        self.sf.create_contact('user@company.com', **details)
         # retrieve contact
         contact = self.sf.find_contact_by_email('user@company.com')
         assert contact['AccountId'] == account_id 
 
         # update contact (can't change email)
-        self.sf.create_or_update_contact_on_account('user@company.com', 'Russ', 'Hanneman', account_id)
+        details = {
+            'AccountId': account_id,
+            'LastName': 'Russ Hanneman'
+        }
+        self.sf.create_or_update_contact_on_account('user@company.com', **details)
         assert contact['AccountId'] == account_id 
 
         # now delete it to cleanup
         success = self.sf.delete_account_by_id(account_id)
         assert success
 
-    def test_property(self):
-        # assumes there is a property in salesforce already
+    # Note: Keeping this for posterity but we do not use this functionality currently in SEED
+    # def test_property(self):
+    #     # assumes there is a property in salesforce already
 
-        # random field to update
-        new_year_built = "2000"
-        args = {"Year_Built__c": new_year_built}
+    #     # random field to update
+    #     new_year_built = "2000"
+    #     args = {"Year_Built__c": new_year_built}
 
-        # can you get a property (return first one)
-        print(f" ...get first property (to get an ID)...")
-        prop = self.sf.get_first_property()
-        print(f" prop: {prop}")
-        assert prop is not None
-        property_id = prop['Id']
-        property_name = prop['Name']
-        # we are assuming this exists I guess it might not
-        year_built = prop['Year_Built__c']
-        print(f" Using property Id: {property_id}")
+    #     # can you get a property (return first one)
+    #     print(f" ...get first property (to get an ID)...")
+    #     prop = self.sf.get_first_property()
+    #     print(f" prop: {prop}")
+    #     assert prop is not None
+    #     property_id = prop['Id']
+    #     property_name = prop['Name']
+    #     # we are assuming this exists I guess it might not
+    #     year_built = prop['Year_Built__c']
+    #     print(f" Using property Id: {property_id}")
 
-        # can you retrieve by property ID?
-        print(f" ...retrieving property by property ID...")
-        prop_by_id = self.sf.get_property_by_id(property_id)
-        print(f" prop by id: {prop_by_id}")
-        assert prop_by_id['Id'] == property_id
+    #     # can you retrieve by property ID?
+    #     print(f" ...retrieving property by property ID...")
+    #     prop_by_id = self.sf.get_property_by_id(property_id)
+    #     print(f" prop by id: {prop_by_id}")
+    #     assert prop_by_id['Id'] == property_id
 
-        # can you retrieve property by Name?
-        print(f" ...retrieving property by name...")
-        prop_by_name = self.sf.find_property_by_name(property_name)
-        print(f" prop by name: {prop_by_name}")
-        assert prop_by_name['Name'] == property_name
+    #     # can you retrieve property by Name?
+    #     print(f" ...retrieving property by name...")
+    #     prop_by_name = self.sf.find_property_by_name(property_name)
+    #     print(f" prop by name: {prop_by_name}")
+    #     assert prop_by_name['Name'] == property_name
 
-        # can you update a property field?
-        print(f" ...updating property...")
-        prop_updated = self.sf.update_property(property_id, **args)
-        print(f"prop updated: {prop_updated}")
-        assert prop_updated['Year_Built__c'] == new_year_built
+    #     # can you update a property field?
+    #     print(f" ...updating property...")
+    #     prop_updated = self.sf.update_property(property_id, **args)
+    #     print(f"prop updated: {prop_updated}")
+    #     assert prop_updated['Year_Built__c'] == new_year_built
 
-        # restore value
-        args['Year_Built__c'] = year_built
-        prop_updated2 = self.sf.update_property(property_id, **args)
+    #     # restore value
+    #     args['Year_Built__c'] = year_built
+    #     prop_updated2 = self.sf.update_property(property_id, **args)
 
     def test_benchmark(self):
 
@@ -206,12 +211,11 @@ class SalesforceIntegrationTest(unittest.TestCase):
         new_ENERGY_STAR_Score = 20
         args = {"ENERGY_STAR_Score__c": new_ENERGY_STAR_Score}
         bench_updated = self.sf.update_benchmark(salesforce_benchmark_id, **args)
-        print(f"!!!!! up to here! ")
         print(f"benchmark updated: {bench_updated}")
 
-        # TODO: get by salesforce_benchmark_id to see if it matches
-
-        # assert bench_updated['ENERGY_STAR_Score__c'] == new_ENERGY_STAR_Score
+        # retrieve again to see if it was updated
+        bench2 = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
+        assert bench2['ENERGY_STAR_Score__c'] == new_ENERGY_STAR_Score
 
         # restore value
         args['ENERGY_STAR_Score__c'] = ENERGY_STAR_Score

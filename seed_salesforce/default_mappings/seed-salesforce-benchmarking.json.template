@@ -1,6 +1,0 @@
-{
-	"ShippingStreet": "{{address_line_1}}",
-	"ShippingCity": "{{city}}",
-	"ShippingState": "{{state}}",
-	"ShippingPostalCode": "{{postal_code}}"
-}

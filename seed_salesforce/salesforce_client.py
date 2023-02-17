@@ -81,13 +81,6 @@ class SalesforceClient(object):
 
         self.mdapi = self.connection.mdapi
 
-        self._template_dir = Path(__file__).parent / "default_mappings"
-        if not Path(self._template_dir).exists():
-            raise Exception(f'Invalid coupling. Missing {self._template_dir} directory.')
-
-        self._template_env = Environment(
-            loader=FileSystemLoader(searchpath=self._template_dir),
-            undefined=StrictUndefined)
 
     @classmethod
     def read_connection_config_file(cls, filepath: Path) -> dict:
@@ -509,18 +502,18 @@ class SalesforceClient(object):
 
         return {}
 
-    def create_or_update_contact_on_account(self, contact_email: str, contact_first_name: str, contact_last_name: str, account_id: str) -> dict:
+    def create_or_update_contact_on_account(self, contact_email: str, **kwargs) -> dict:
 
         # find the contact
         contact = self.find_contact_by_email(contact_email)
-        
+
         if not contact:
             # create and assign to account
-            contact = self.create_contact(contact_email, FirstName=contact_first_name, LastName=contact_last_name, AccountId=account_id)
+            contact = self.create_contact(contact_email, **kwargs)
         else:
             # update contact with name and account Id, etc?
-            contact = self.update_contact(contact['Id'], FirstName=contact_first_name, LastName=contact_last_name, AccountId=account_id)
-    
+            contact = self.update_contact(contact['Id'], **kwargs)
+
         return None
 
     def create_custom_field(self, object_name: str, field_name: str, length: int, description: str) -> dict:
