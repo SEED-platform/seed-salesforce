@@ -1,8 +1,0 @@
-{
-	"AccountNumber": "",
-	"TickerSymbol": "{{labels}}",
-	"ShippingStreet": "{{address}}",
-	"ShippingCity": "{{city}}",
-	"ShippingState": "{{state}}",
-	"ShippingPostalCode": "{{postal_code}}"
-}

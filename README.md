@@ -4,15 +4,7 @@ The SEED Salesforce connection enables data exchange between a SEED instance and
 
 ### Getting Started
 
-To get started, you will need to checkout py-seed (with the branch `add-seed-helpers`) and place the project at the same level as this project. For example:
-
-```
-cd ..
-git clone git@github.com:SEED-platform/py-seed.git
-git checkout add-seed-helpers
-```
-
-Then install the poetry-based dependencies. Note that installing a package from GitHub through poetry can cause some issues with updating, therefore, it is easiest (for now) to clone the dependencies manually.
+Clone this repository, then install the poetry-based dependencies. 
 
 ```
 pip install poetry
@@ -21,7 +13,7 @@ poetry install
 
 ### Configuring
 
-Both SEED and Salesforce configuration files are needed for this library to function correctly.
+The Salesforce configuration file is needed for this library to function correctly.
 
 #### Salesforce
 
@@ -34,38 +26,19 @@ in with the correct credentials. The format of the Salesforce should contain the
     "username": "user@company.com",
     "password": "secure-password",
     "security_token": "secure-token"
+    "domain": ""
 }
 ```
 
-#### SEED
+**IMPORTANT:** If you are connecting to a sandbox Salesforce environment, make sure to add "domain": "test" to the `salesforce-config-dev.json` file or authentication will fail.
 
-Copy `seed-config-example.json` to `seed-config-dev.json` and fill
-in with the correct credentials. The format of the SEED configuration should contain the following:
-
-```
-{
-    "name": "seed_api_test",
-    "base_url": "https://dev1.seed-platform.org",
-    "username": "user@company.com",
-    "api_key": "secure-key",
-    "port": 443,
-    "use_ssl": true
-}
-```
 
 ### Running Tests
 
-Make sure to add and configure the SEED and Salesforce configuration files. Note that they must be named `seed-config-dev.json` and `salesforce-config-dev.json` for the tests to run correctly.
+Make sure to add and configure the Salesforce configuration file. Note that it must be named  `salesforce-config-dev.json` for the tests to run correctly.
 
 Run the tests using:
 
 ```
 poetry run pytest
 ```
-
-### TODO
-
-- [ ] Create template mapping file between SEED and Salesforce
-- [ ] Add in integration tests, save credentials to GitHub (look at py-seed for how to launch SEED for integration testing)
-- [ ] Create background running task for syncing
-- [ ] (optional) create webservice to kick off syncing.

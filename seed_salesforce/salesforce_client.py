@@ -42,14 +42,13 @@ from pathlib import Path
 
 import requests
 from simple_salesforce import Salesforce
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 _log = logging.getLogger(__name__)
 
 
 class SalesforceClient(object):
     def __init__(self, connection_params: dict = None, connection_config_filepath: Path = None) -> None:
-        """Connection to salesforce. Uses the `simple_salesforce` library to commnicate with Salesforce.
+        """Connection to salesforce. Uses the `simple_salesforce` library to communicate with Salesforce.
 
         Args:
             connection_params (dict, optional): Parameters to connect to Salesforce. Defaults to None. If using, then must contain:
@@ -78,15 +77,9 @@ class SalesforceClient(object):
             **connect_info,
             session=self.session
         )
+
         self.mdapi = self.connection.mdapi
 
-        self._template_dir = Path(__file__).parent / "default_mappings"
-        if not Path(self._template_dir).exists():
-            raise Exception(f'Invalid coupling. Missing {self._template_dir} directory.')
-
-        self._template_env = Environment(
-            loader=FileSystemLoader(searchpath=self._template_dir),
-            undefined=StrictUndefined)
 
     @classmethod
     def read_connection_config_file(cls, filepath: Path) -> dict:
@@ -122,9 +115,217 @@ class SalesforceClient(object):
         rendered = self._template_env.get_template(template_name).render(context)
         return json.loads(rendered)
 
+    def list_objects(self) -> list:
+        """ List all objects in salesforce db 
+        Returns:
+            list of objects
+        """
 
-    def get_property_by_account_id(self, account_id: str) -> dict:
-        """Return the property by the account ID.
+        objects = self.connection.query("SELECT SObjectType FROM ObjectPermissions GROUP BY SObjectType ORDER BY SObjectType ASC")
+        #print(f"OBJECTS: \n {objects}")
+
+        # temp: get all fields for Property
+        # props = self.connection.query("SELECT FIELDS(ALL) FROM Property__c LIMIT 1")
+        # print(f"\n\n PROPERTY FIELDS ARE: {props}")
+
+        # temp: get all fields for Benchmark
+        # benchmarks = self.connection.query("SELECT FIELDS(ALL) FROM Benchmark__c LIMIT 1")
+        # print(f"\n\n BENCHMARK FIELDS ARE: {benchmarks}")
+
+        fields = self.connection.query("SELECT EntityDefinition.QualifiedApiName, QualifiedApiName, DataType FROM FieldDefinition WHERE EntityDefinition.QualifiedApiName = 'oei__Benchmark__c'")
+        print(f"\n\n FIELDS: {fields}")
+        return objects
+
+    def get_first_benchmark(self) -> dict:
+        """Get a benchmark (for testing mainly)
+
+        Returns:
+            dict:  OrderedDict([('attributes', 
+            OrderedDict([('type', 'Benchmark__c'), 
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            ('Id', 'a0156000004bOpHAAU'),
+            ...
+        """
+        response = self.connection.query(f"Select FIELDS(ALL) from Benchmark__c limit 1")
+        if response:
+            if response['totalSize'] > 0:
+                return response['records'][0]
+            else:
+                # no records?
+                raise Exception(f"There are no Benchmark records to return")
+        else:
+            raise Exception(f"Failed to return a Benchmark")
+
+    def get_benchmark_by_custom_id(self, salesforce_benchmark_id: str) -> dict:
+        """Return the benchmark by the Salesforce Benchmark ID.
+
+        Args:
+            salesforce_benchmark_id (str): Salesforce Benchmark ID of the property to return
+            Note: this is not necessarily the Benchmark ID (it's a separate field)
+            # TODO: make this configurable?
+
+        Returns:
+            dict:  OrderedDict([('attributes', 
+            OrderedDict([('type', 'Benchmark__c'), 
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            ('Id', 'a0156000004bOpHAAU'),
+            ...
+        """
+        
+        benchmark_exist = self.connection.query(f"Select Id from Benchmark__c where Salesforce_Benchmark_ID__c = '{salesforce_benchmark_id}'")
+        if len(benchmark_exist['records']) == 1:
+            # if there is a single record, then it exist, but
+            # we need to get the entire record for the request
+            rec = self.get_benchmark_by_id(benchmark_exist['records'][0]['Id'])
+            return rec
+        elif len(benchmark_exist['records']) > 1:
+            # there are multiple properties with the same name, raise error
+            raise Exception(f"Failed to retrun Benchmark {salesforce_benchmark_id}...multiple benchmarks with that name found")
+        else:
+            # there is no property, return empty dict
+            return {}
+
+    def get_benchmark_by_id(self, benchmark_id: str) -> dict:
+        """Return the benchmark by the salesforce benchmark ID (not custom field).
+
+        Args:
+            benchmark_id (str): ID of the benchmark to return
+
+        Returns:
+            dict:  OrderedDict([('attributes', 
+            OrderedDict([('type', 'Benchmark__c'), 
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            ('Id', 'a0156000004bOpHAAU'),
+            ...
+        """
+        try:
+            return self.connection.Benchmark__c.get(benchmark_id)
+        except:
+            raise Exception("Error retrieving benchmark by ID")
+
+    def update_benchmark(self, salesforce_benchmark_id, **kwargs) -> dict:
+        """ Update an existing benchmark
+
+        Args:
+            salesforce_benchmark_id (str): special field serving as Unique Key for retrieving this benchmark object
+            (we are not using the property's ID)
+
+        Returns:
+            dict: OrderedDict([...])
+        """
+        # TODO: try it with the customExtIdField__c/11999 syntax here
+        # otherwise: get the Id from salesforce_benchmark_id and then update
+
+        updated_record = self.connection.Benchmark__c.update(salesforce_benchmark_id,  {
+            **kwargs
+        })
+        print(f"response: {updated_record}")
+
+        if updated_record == 204:
+            # TODO: we are making an assumption here that salesforce_benchmark_id is also the Benchmark's ID
+            # make a better "get" using the field "Salesforce_Benchmark_ID__c" instead of "Id"
+            # TODO: Is it necessary for us to pass around these whole objects?
+            # benchmark = self.connection.Benchmark__c.get(salesforce_benchmark_id)
+            # return benchmark
+            return updated_record
+        else:
+            raise Exception(f"Failed to update Benchmark {salesforce_benchmark_id} with error: {updated_record['errors']}")
+
+    def update_property(self, property_id: str, **kwargs) -> dict:
+        """Update an existing Property.
+
+        Args:
+            property_id (str): id of contact to update
+            **kwargs: additional parameters to update
+
+        Raises:
+            Exception: Error updating record
+
+        Returns:
+            dict: OrderedDict([...])
+        """
+        updated_record = self.connection.Property__c.update(property_id, {
+            **kwargs
+        })
+
+        if updated_record == 204:
+            prop = self.connection.Property__c.get(property_id)
+            return prop
+        else:
+            raise Exception(f"Failed to update property {property_id} with error: {updated_record['errors']}")
+
+
+    def get_first_property(self) -> dict:
+        """Get a property (for testing mainly)
+
+        Returns:
+            dict: OrderedDict([('attributes', 
+            OrderedDict([('type', 'Property__c'), 
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0256000005mDNrAAM')])), 
+            ('Id', 'a0256000005mDNrAAM'),
+            ...
+        """
+        prop = self.connection.query(f"Select FIELDS(ALL) from Property__c limit 1")
+        if prop:
+            if prop['totalSize'] > 0:
+                return prop['records'][0]
+            else:
+                # no records
+                return {}
+        else:
+            raise Exception(f"Failed to return a property")
+
+    def find_property_by_name(self, name: str) -> dict:
+        """Retrieve an existing Property by name 
+        Args: 
+            name (str): name of the property
+
+        Returns: 
+            dict: OrderedDict([(
+            'attributes', OrderedDict([('type', 'Property__c'), 
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])), 
+            ('Id', 'a0056000005SoEiAAK'), 
+            ('Name', '123 Made Up St'),
+            ...
+        """
+
+        # clean name
+        name = name.strip().replace("'", "\\'")
+
+        property_exist = self.connection.query(f"Select Id from Property__c where Name = '{name}'")
+        if len(property_exist['records']) == 1:
+            # if there is a single record, then it exist, but
+            # we need to get the entire record for the request
+            prop = self.get_property_by_id(property_exist['records'][0]['Id'])
+            return prop
+        elif len(property_exist['records']) > 1:
+            # there are multiple properties with the same name, raise error
+            raise Exception(f"Failed to return Property {name}...multiple properties with that name found")
+        else:
+            # there is no account, return empty dict
+            return {}
+
+    def get_property_by_id(self, property_id: str) -> dict:
+        """Return the property by the salesforce property ID.
+
+        Args:
+            property_id (str): ID of the property to return
+
+        Returns:
+            dict: OrderedDict([(
+            'attributes', OrderedDict([('type', 'Property__c'), 
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])), 
+            ('Id', 'a0056000005SoEiAAK'), 
+            ('Name', '123 Made Up St'),
+            ...
+        """
+        try:
+            return self.connection.Property__c.get(property_id)
+        except:
+            raise Exception("Error retrieving property by ID")
+
+    def get_account_by_account_id(self, account_id: str) -> dict:
+        """Return the account by the account ID.
 
         Args:
             account_id (str): ID of the account to return
@@ -136,8 +337,8 @@ class SalesforceClient(object):
         """
         return self.connection.Account.get(account_id)
 
-    def find_properties_by_name(self, name: str) -> dict:
-        """Find a property on the Account table by passed name.
+    def find_account_by_name(self, name: str) -> dict:
+        """Find a record on the Account table by passed name.
 
         Args:
             name (str): name of the account to find
@@ -151,21 +352,25 @@ class SalesforceClient(object):
                 ('Name', 'Scrumptious Ice Cream'),
                 ('Type', 'Ice Cream Shop'),
         """
+
+        # clean name
+        name = name.strip().replace("'", "\\'")
+
         account_exist = self.connection.query(f"Select Id from Account where Name = '{name}'")
         if len(account_exist['records']) == 1:
             # if there is a single record, then it exist, but
             # we need to get the entire record for the request
-            account = self.get_property_by_account_id(account_exist['records'][0]['Id'])
+            account = self.get_account_by_account_id(account_exist['records'][0]['Id'])
             return account
         else:
-            # there is no property, return empty dict
+            # there is no account, return empty dict
             return {}
 
-    def create_property(self, name: str, **kwargs) -> dict:
-        """Create a property on the Account table.
+    def create_account(self, name: str, **kwargs) -> dict:
+        """Create a record on the Account table.
 
         Args:
-            name (str): name of the property to create
+            name (str): name of the account to create
             **kwargs: additional parameters to pass to the create method
 
         Raises:
@@ -181,10 +386,9 @@ class SalesforceClient(object):
                 ('Name', 'Scrumptious Ice Cream'),
                 ('Type', 'Ice Cream Shop'),
         """
-        account = self.find_properties_by_name(name)
-
+        account = self.find_account_by_name(name)
         if account:
-            raise Exception(f"Property {name} already exists.")
+            raise Exception(f"Account {name} already exists.")
         else:
             new_record = self.connection.Account.create({
                 'Name': name,
@@ -196,7 +400,7 @@ class SalesforceClient(object):
                 account = self.connection.Account.get(new_record['id'])
                 return account
             else:
-                raise Exception(f"Failed to create property {name} with error: {new_record['errors']}")
+                raise Exception(f"Failed to create account {name} with error: {new_record['errors']}")
 
     def create_contact(self, email: str, **kwargs) -> dict:
         """Create a contact on the Contact table.
@@ -216,6 +420,7 @@ class SalesforceClient(object):
 
         if account:
             raise Exception(f"Contact {email} already exists.")
+
         else:
             new_record = self.connection.Contact.create({
                 'Email': email,
@@ -229,8 +434,32 @@ class SalesforceClient(object):
             else:
                 raise Exception(f"Failed to create contact {email} with error: {new_record['errors']}")
 
-    def update_property_by_id(self, account_id: str, update_data: dict) -> dict:
-        """Update the fields of an existing property on Salesforce
+    def update_contact(self, contact_id: str, **kwargs) -> dict:
+        """Update an existing Contact.
+
+        Args:
+            contact_id (str): id of contact to update
+            **kwargs: additional parameters to update
+
+        Raises:
+            Exception: Error updating record
+
+        Returns:
+            dict: OrderedDict([
+        """
+        updated_record = self.connection.Contact.update(contact_id, {
+            **kwargs
+        })
+
+        if updated_record == 204:
+            account = self.connection.Contact.get(contact_id)
+            return account
+        else:
+            raise Exception(f"Failed to update contact {email} with error: {updated_record['errors']}")
+
+
+    def update_account_by_id(self, account_id: str, update_data: dict) -> dict:
+        """Update the fields of an existing account on Salesforce
 
         Args:
             account_id (str): id of the salesforce account to delete
@@ -241,14 +470,14 @@ class SalesforceClient(object):
         """
         return self.connection.Account.update(account_id, update_data)
 
-    def delete_property_by_id(self, id: str) -> bool:
-        """Delete a property on the Account table by passed id.
+    def delete_account_by_id(self, id: str) -> bool:
+        """Delete a record on the Account table by passed id.
 
         Args:
             id (str): id of the salesforce account to delete
 
         Returns:
-            bool: did the property get deleted successfully?
+            bool: did the account get deleted successfully?
         """
         status = self.connection.Account.delete(id)
         if status == 204:
@@ -270,31 +499,40 @@ class SalesforceClient(object):
             # contact exists, return the full record
             return self.connection.Contact.get(contact_info['records'][0]['Id'])
 
-        return None
+        return {}
 
-    def create_or_update_contact_on_account(self, contact_email: str, contact_first_name: str, contact_last_name: str, account_id: str) -> dict:
+    def create_or_update_contact_on_account(self, contact_email: str, **kwargs) -> dict:
 
         # find the contact
         contact = self.find_contact_by_email(contact_email)
+
         if not contact:
-            contact = self.create_contact(contact_email, FirstName=contact_first_name, LastName=contact_last_name)
+            # create and assign to account
+            contact = self.create_contact(contact_email, **kwargs)
+        else:
+            # update contact with name and account Id, etc?
+            contact = self.update_contact(contact['Id'], **kwargs)
 
-        # get the account record
-        self.get_property_by_account_id(account_id)
-        # figure out how to add the contact to the account
-
-        # self.update_property_by_id(account_id, {'Contact__c': contact['Id']})
-
-        # TODO: need to figur out how to assign a contact
         return None
 
-    def create_custom_field(self, name, length: int, description):
+    def create_custom_field(self, object_name: str, field_name: str, length: int, description: str) -> dict:
+        """Right now this only creates a new string field of "LongTextArea"
+
+        Args:
+            object_name (str): Name of the salesforce object (table), e.g., Account, Benchmarking
+            field_name (str): Name of the field to create with no spaces
+            length (int): Length of field
+            description (str): Description of the field
+
+        Returns:
+            dict: _description_
+        """
         length = 256 if length < 256 else length
 
         # check if the field already exists
         custom_field = self.mdapi.CustomField(
-            label=name,
-            fullName=f"Account.{name}__c",  # Field name (format has to be CustomObject.FieldName)
+            label=field_name,
+            fullName=f"{object_name}.{field_name}__c",
             type=self.mdapi.FieldType("LongTextArea"),
             length=length,
             description=description,
