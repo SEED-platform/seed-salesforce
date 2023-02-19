@@ -2,5 +2,6 @@
   "instance": "https://<url>.lightning.force.com",
   "username": "user@company.com",
   "password": "secure-password",
-  "security_token": "secure-token"
+  "security_token": "secure-token",
+  "domain": ""
 }

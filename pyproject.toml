@@ -10,11 +10,10 @@ readme = "README.md"
 homepage = "https://seed-platform.org"
 repository = "https://github.com/seed-platform/seed-salesforce"
 documentation = "https://seed-platform.org"
-keywords = ["SEED Platform", "Building Benchmarking", "Salesforce"]
+keywords = ["SEED Platform", "Building Benchmarking", "Salesforce", "Building Performance Standard"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
