@@ -61,3 +61,5 @@ jobs:
       - name: Run PyTest
         run: |
           poetry run pytest
+    # mypy --install-types --non-interactive --show-error-codes .
+  # mypy:
