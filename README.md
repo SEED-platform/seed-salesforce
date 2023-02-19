@@ -4,7 +4,7 @@ The SEED Salesforce connection enables data exchange between a SEED instance and
 
 ### Getting Started
 
-Clone this repository, then install the poetry-based dependencies. 
+Clone this repository, then install the poetry-based dependencies.
 
 ```
 pip install poetry
@@ -32,10 +32,9 @@ in with the correct credentials. The format of the Salesforce should contain the
 
 **IMPORTANT:** If you are connecting to a sandbox Salesforce environment, make sure to add "domain": "test" to the `salesforce-config-dev.json` file or authentication will fail.
 
-
 ### Running Tests
 
-Make sure to add and configure the Salesforce configuration file. Note that it must be named  `salesforce-config-dev.json` for the tests to run correctly.
+Make sure to add and configure the Salesforce configuration file. Note that it must be named `salesforce-config-dev.json` for the tests to run correctly.
 
 Run the tests using:
 

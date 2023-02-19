@@ -100,7 +100,6 @@ class SalesforceIntegrationTest(unittest.TestCase):
         success = self.sf.delete_account_by_id(account_id)
         assert success
 
-
     def test_update_contact_and_account(self):
         test_account_name = 'A Fake Account'
         details = {
@@ -133,7 +132,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         self.sf.create_contact('user@company.com', **details)
         # retrieve contact
         contact = self.sf.find_contact_by_email('user@company.com')
-        assert contact['AccountId'] == account_id 
+        assert contact['AccountId'] == account_id
 
         # update contact (can't change email)
         details = {
@@ -141,7 +140,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
             'LastName': 'Russ Hanneman'
         }
         self.sf.create_or_update_contact_on_account('user@company.com', **details)
-        assert contact['AccountId'] == account_id 
+        assert contact['AccountId'] == account_id
 
         # now delete it to cleanup
         success = self.sf.delete_account_by_id(account_id)
@@ -191,7 +190,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
     def test_benchmark(self):
 
         # get first benchmark (to get an Id)
-        print(f" ...get first benchmark (to get an ID)...")
+        print(" ...get first benchmark (to get an ID)...")
         benchmark = self.sf.get_first_benchmark()
         print(f" Benchmark: {benchmark}")
         assert benchmark is not None
@@ -199,13 +198,13 @@ class SalesforceIntegrationTest(unittest.TestCase):
         salesforce_benchmark_id = benchmark['Salesforce_Benchmark_ID__c']
 
         # can you retrieve by "Salesforce Benchmark ID" custom field?
-        print(f" ...retrieving benchmark by Salesforce Benchmark ID...")
+        print(" ...retrieving benchmark by Salesforce Benchmark ID...")
         bench_by_custom_id = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
         assert bench_by_custom_id['Id'] == benchmark_id
 
         # can you update a benchmark field?
-        print(f" ...updating benchmark...")
+        print(" ...updating benchmark...")
         # TODO: again assuming this field exists...it might not?
         ENERGY_STAR_Score = benchmark['ENERGY_STAR_Score__c']
         new_ENERGY_STAR_Score = 20
@@ -219,4 +218,4 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # restore value
         args['ENERGY_STAR_Score__c'] = ENERGY_STAR_Score
-        bench_updated2 = self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        self.sf.update_benchmark(salesforce_benchmark_id, **args)
