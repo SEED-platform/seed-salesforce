@@ -57,7 +57,7 @@ jobs:
           poetry install
       - name: Save Salesforce config from secrets
         run: |
-          echo "${{ secrets.SALESFORCE_CONFIG }}" >> /home/runner/py-seed/salesforce-config-dev.json
+          echo "${{ secrets.SALESFORCE_CONFIG }}" > salesforce-config-dev.json
       - name: Run PyTest
         run: |
           poetry run pytest
