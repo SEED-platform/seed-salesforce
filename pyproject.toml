@@ -3,7 +3,7 @@ name = "seed-salesforce"
 version = "0.1.0"
 description = "Package for connecting SEED data to Salesforce"
 authors = ["Nicholas Long <nicholas.long@nrel.gov>"]
-license = "BSD-4-Clause"
+license = "BSD-3-Clause"
 
 readme = "README.md"
 
