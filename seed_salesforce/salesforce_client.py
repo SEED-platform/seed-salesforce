@@ -88,7 +88,8 @@ class SalesforceClient(object):
                 "instance": "https://<environment>.lightning.force.com",
                 "username": "user@somedomain.com",
                 "password": "alongpassword",
-                "security_token": "access1key2with3numbers"
+                "security_token": "access1key2with3numbers",
+                "domain": "test"
             }
 
         Args:

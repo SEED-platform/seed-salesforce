@@ -41,3 +41,17 @@ Run the tests using:
 ```
 poetry run pytest
 ```
+
+#### GitHub Actions
+
+The credentials are stored in a GitHub Action Secret. Add the following with correctly filled out information to a secret key named SALESFORCE_CONFIG:
+
+```
+{
+    "instance": "https://<environment>.lightning.force.com",
+    "username": "user@somedomain.com",
+    "password": "alongpassword",
+    "security_token": "access1key2with3numbers",
+    "domain": "test"
+}
+```
