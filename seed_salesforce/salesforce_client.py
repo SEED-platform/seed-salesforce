@@ -1,40 +1,4 @@
-"""
-****************************************************************************************************
-:copyright (c) 2019-2022, Alliance for Sustainable Energy, LLC, and other contributors.
-
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted
-provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this list of conditions
-and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-and the following disclaimer in the documentation and/or other materials provided with the
-distribution.
-
-Neither the name of the copyright holder nor the names of its contributors may be used to endorse
-or promote products derived from this software without specific prior written permission.
-
-Redistribution of this software, without modification, must refer to the software by the same
-designation. Redistribution of a modified version of this software (i) may not refer to the
-modified version by the same designation, or by any confusingly similar designation, and
-(ii) must refer to the underlying software originally provided by Alliance as “URBANopt”. Except
-to comply with the foregoing, the term “URBANopt”, or any confusingly similar designation may
-not be used to refer to any modified version of this software or any modified version of the
-underlying software originally provided by Alliance without the prior written consent of Alliance.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-****************************************************************************************************
-"""
+# Copyright (c) Alliance for Sustainable Energy, LLC. See also https://github.com/seed-platform/seed-salesforce/blob/develop/LICENSE.md
 
 import json
 import logging
@@ -80,7 +44,6 @@ class SalesforceClient(object):
 
         self.mdapi = self.connection.mdapi
 
-
     @classmethod
     def read_connection_config_file(cls, filepath: Path) -> dict:
         """Read in the connection config file and return the connection params. The format in the file must incude:
@@ -89,7 +52,8 @@ class SalesforceClient(object):
                 "instance": "https://<environment>.lightning.force.com",
                 "username": "user@somedomain.com",
                 "password": "alongpassword",
-                "security_token": "access1key2with3numbers"
+                "security_token": "access1key2with3numbers",
+                "domain": "test"
             }
 
         Args:
@@ -116,45 +80,42 @@ class SalesforceClient(object):
         return json.loads(rendered)
 
     def list_objects(self) -> list:
-        """ List all objects in salesforce db 
+        """ List all objects in salesforce db
         Returns:
             list of objects
         """
 
         objects = self.connection.query("SELECT SObjectType FROM ObjectPermissions GROUP BY SObjectType ORDER BY SObjectType ASC")
-        #print(f"OBJECTS: \n {objects}")
 
         # temp: get all fields for Property
         # props = self.connection.query("SELECT FIELDS(ALL) FROM Property__c LIMIT 1")
-        # print(f"\n\n PROPERTY FIELDS ARE: {props}")
 
         # temp: get all fields for Benchmark
         # benchmarks = self.connection.query("SELECT FIELDS(ALL) FROM Benchmark__c LIMIT 1")
         # print(f"\n\n BENCHMARK FIELDS ARE: {benchmarks}")
 
-        fields = self.connection.query("SELECT EntityDefinition.QualifiedApiName, QualifiedApiName, DataType FROM FieldDefinition WHERE EntityDefinition.QualifiedApiName = 'oei__Benchmark__c'")
-        print(f"\n\n FIELDS: {fields}")
+        self.connection.query("SELECT EntityDefinition.QualifiedApiName, QualifiedApiName, DataType FROM FieldDefinition WHERE EntityDefinition.QualifiedApiName = 'oei__Benchmark__c'")
         return objects
 
     def get_first_benchmark(self) -> dict:
         """Get a benchmark (for testing mainly)
 
         Returns:
-            dict:  OrderedDict([('attributes', 
-            OrderedDict([('type', 'Benchmark__c'), 
-            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            dict:  OrderedDict([('attributes',
+            OrderedDict([('type', 'Benchmark__c'),
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])),
             ('Id', 'a0156000004bOpHAAU'),
             ...
         """
-        response = self.connection.query(f"Select FIELDS(ALL) from Benchmark__c limit 1")
+        response = self.connection.query("Select FIELDS(ALL) from Benchmark__c limit 1")
         if response:
             if response['totalSize'] > 0:
                 return response['records'][0]
             else:
                 # no records?
-                raise Exception(f"There are no Benchmark records to return")
+                raise Exception("There are no Benchmark records to return")
         else:
-            raise Exception(f"Failed to return a Benchmark")
+            raise Exception("Failed to return a Benchmark")
 
     def get_benchmark_by_custom_id(self, salesforce_benchmark_id: str) -> dict:
         """Return the benchmark by the Salesforce Benchmark ID.
@@ -165,13 +126,13 @@ class SalesforceClient(object):
             # TODO: make this configurable?
 
         Returns:
-            dict:  OrderedDict([('attributes', 
-            OrderedDict([('type', 'Benchmark__c'), 
-            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            dict:  OrderedDict([('attributes',
+            OrderedDict([('type', 'Benchmark__c'),
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])),
             ('Id', 'a0156000004bOpHAAU'),
             ...
         """
-        
+
         benchmark_exist = self.connection.query(f"Select Id from Benchmark__c where Salesforce_Benchmark_ID__c = '{salesforce_benchmark_id}'")
         if len(benchmark_exist['records']) == 1:
             # if there is a single record, then it exist, but
@@ -192,15 +153,15 @@ class SalesforceClient(object):
             benchmark_id (str): ID of the benchmark to return
 
         Returns:
-            dict:  OrderedDict([('attributes', 
-            OrderedDict([('type', 'Benchmark__c'), 
-            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])), 
+            dict:  OrderedDict([('attributes',
+            OrderedDict([('type', 'Benchmark__c'),
+            ('url', '/services/data/v52.0/sobjects/Benchmark__c/a0156000004bOpHAAU')])),
             ('Id', 'a0156000004bOpHAAU'),
             ...
         """
         try:
             return self.connection.Benchmark__c.get(benchmark_id)
-        except:
+        except BaseException:
             raise Exception("Error retrieving benchmark by ID")
 
     def update_benchmark(self, salesforce_benchmark_id, **kwargs) -> dict:
@@ -216,10 +177,9 @@ class SalesforceClient(object):
         # TODO: try it with the customExtIdField__c/11999 syntax here
         # otherwise: get the Id from salesforce_benchmark_id and then update
 
-        updated_record = self.connection.Benchmark__c.update(salesforce_benchmark_id,  {
+        updated_record = self.connection.Benchmark__c.update(salesforce_benchmark_id, {
             **kwargs
         })
-        print(f"response: {updated_record}")
 
         if updated_record == 204:
             # TODO: we are making an assumption here that salesforce_benchmark_id is also the Benchmark's ID
@@ -254,18 +214,17 @@ class SalesforceClient(object):
         else:
             raise Exception(f"Failed to update property {property_id} with error: {updated_record['errors']}")
 
-
     def get_first_property(self) -> dict:
         """Get a property (for testing mainly)
 
         Returns:
-            dict: OrderedDict([('attributes', 
-            OrderedDict([('type', 'Property__c'), 
-            ('url', '/services/data/v52.0/sobjects/Property__c/a0256000005mDNrAAM')])), 
+            dict: OrderedDict([('attributes',
+            OrderedDict([('type', 'Property__c'),
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0256000005mDNrAAM')])),
             ('Id', 'a0256000005mDNrAAM'),
             ...
         """
-        prop = self.connection.query(f"Select FIELDS(ALL) from Property__c limit 1")
+        prop = self.connection.query("Select FIELDS(ALL) from Property__c limit 1")
         if prop:
             if prop['totalSize'] > 0:
                 return prop['records'][0]
@@ -273,18 +232,18 @@ class SalesforceClient(object):
                 # no records
                 return {}
         else:
-            raise Exception(f"Failed to return a property")
+            raise Exception("Failed to return a property")
 
     def find_property_by_name(self, name: str) -> dict:
-        """Retrieve an existing Property by name 
-        Args: 
+        """Retrieve an existing Property by name
+        Args:
             name (str): name of the property
 
-        Returns: 
+        Returns:
             dict: OrderedDict([(
-            'attributes', OrderedDict([('type', 'Property__c'), 
-            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])), 
-            ('Id', 'a0056000005SoEiAAK'), 
+            'attributes', OrderedDict([('type', 'Property__c'),
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])),
+            ('Id', 'a0056000005SoEiAAK'),
             ('Name', '123 Made Up St'),
             ...
         """
@@ -313,15 +272,15 @@ class SalesforceClient(object):
 
         Returns:
             dict: OrderedDict([(
-            'attributes', OrderedDict([('type', 'Property__c'), 
-            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])), 
-            ('Id', 'a0056000005SoEiAAK'), 
+            'attributes', OrderedDict([('type', 'Property__c'),
+            ('url', '/services/data/v52.0/sobjects/Property__c/a0056000005SoEiAAK')])),
+            ('Id', 'a0056000005SoEiAAK'),
             ('Name', '123 Made Up St'),
             ...
         """
         try:
             return self.connection.Property__c.get(property_id)
-        except:
+        except BaseException:
             raise Exception("Error retrieving property by ID")
 
     def get_account_by_account_id(self, account_id: str) -> dict:
@@ -455,8 +414,7 @@ class SalesforceClient(object):
             account = self.connection.Contact.get(contact_id)
             return account
         else:
-            raise Exception(f"Failed to update contact {email} with error: {updated_record['errors']}")
-
+            raise Exception(f"Failed to update contact {contact_id} with error: {updated_record['errors']}")
 
     def update_account_by_id(self, account_id: str, update_data: dict) -> dict:
         """Update the fields of an existing account on Salesforce

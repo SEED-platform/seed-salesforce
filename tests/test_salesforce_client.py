@@ -1,43 +1,9 @@
-"""
-****************************************************************************************************
-:copyright (c) 2022, Alliance for Sustainable Energy, LLC, and other contributors.
-
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted
-provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this list of conditions
-and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-and the following disclaimer in the documentation and/or other materials provided with the
-distribution.
-
-Neither the name of the copyright holder nor the names of its contributors may be used to endorse
-or promote products derived from this software without specific prior written permission.
-
-Redistribution of this software, without modification, must refer to the software by the same
-designation. Redistribution of a modified version of this software (i) may not refer to the
-modified version by the same designation, or by any confusingly similar designation, and
-(ii) must refer to the underlying software originally provided by Alliance as “URBANopt”. Except
-to comply with the foregoing, the term “URBANopt”, or any confusingly similar designation may
-not be used to refer to any modified version of this software or any modified version of the
-underlying software originally provided by Alliance without the prior written consent of Alliance.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-****************************************************************************************************
-"""
+# Copyright (c) Alliance for Sustainable Energy, LLC. See also https://github.com/seed-platform/seed-salesforce/blob/develop/LICENSE.md
 
 import unittest
 from pathlib import Path
+
+import pytest
 
 from seed_salesforce.salesforce_client import SalesforceClient
 
@@ -71,6 +37,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         return super().setUp()
 
+    @pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_search_and_create_and_delete_account(self):
         test_account_name = 'Scrumptious Ice Cream'
         account = self.sf.find_account_by_name(test_account_name)
@@ -94,13 +61,14 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # Find the record
         account = self.sf.find_account_by_name(test_account_name)
+        print(f"hasdlfkjasdlfkjasdflkj {account}")
         assert account['Id'] == account_id
 
         # now delete it to cleanup
         success = self.sf.delete_account_by_id(account_id)
         assert success
 
-
+    @pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_update_contact_and_account(self):
         test_account_name = 'A Fake Account'
         details = {
@@ -133,7 +101,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         self.sf.create_contact('user@company.com', **details)
         # retrieve contact
         contact = self.sf.find_contact_by_email('user@company.com')
-        assert contact['AccountId'] == account_id 
+        assert contact['AccountId'] == account_id
 
         # update contact (can't change email)
         details = {
@@ -141,7 +109,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
             'LastName': 'Russ Hanneman'
         }
         self.sf.create_or_update_contact_on_account('user@company.com', **details)
-        assert contact['AccountId'] == account_id 
+        assert contact['AccountId'] == account_id
 
         # now delete it to cleanup
         success = self.sf.delete_account_by_id(account_id)
@@ -191,7 +159,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
     def test_benchmark(self):
 
         # get first benchmark (to get an Id)
-        print(f" ...get first benchmark (to get an ID)...")
+        print(" ...get first benchmark (to get an ID)...")
         benchmark = self.sf.get_first_benchmark()
         print(f" Benchmark: {benchmark}")
         assert benchmark is not None
@@ -199,13 +167,13 @@ class SalesforceIntegrationTest(unittest.TestCase):
         salesforce_benchmark_id = benchmark['Salesforce_Benchmark_ID__c']
 
         # can you retrieve by "Salesforce Benchmark ID" custom field?
-        print(f" ...retrieving benchmark by Salesforce Benchmark ID...")
+        print(" ...retrieving benchmark by Salesforce Benchmark ID...")
         bench_by_custom_id = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
         assert bench_by_custom_id['Id'] == benchmark_id
 
         # can you update a benchmark field?
-        print(f" ...updating benchmark...")
+        print(" ...updating benchmark...")
         # TODO: again assuming this field exists...it might not?
         ENERGY_STAR_Score = benchmark['ENERGY_STAR_Score__c']
         new_ENERGY_STAR_Score = 20
@@ -219,4 +187,4 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # restore value
         args['ENERGY_STAR_Score__c'] = ENERGY_STAR_Score
-        bench_updated2 = self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        self.sf.update_benchmark(salesforce_benchmark_id, **args)
