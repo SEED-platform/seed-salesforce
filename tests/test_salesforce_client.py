@@ -37,7 +37,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         return super().setUp()
 
-    @pytest.mark.skip(reason="Need to confirm that this is a valid test")
+    #@pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_search_and_create_and_delete_account(self):
         test_account_name = 'Scrumptious Ice Cream'
         account = self.sf.find_account_by_name(test_account_name)
@@ -68,7 +68,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         success = self.sf.delete_account_by_id(account_id)
         assert success
 
-    @pytest.mark.skip(reason="Need to confirm that this is a valid test")
+    #@pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_update_contact_and_account(self):
         test_account_name = 'A Fake Account'
         details = {
