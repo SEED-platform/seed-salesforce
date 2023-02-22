@@ -1,5 +1,6 @@
 # Copyright (c) Alliance for Sustainable Energy, LLC. See also https://github.com/seed-platform/seed-salesforce/blob/develop/LICENSE.md
 
+import random
 import unittest
 from pathlib import Path
 
@@ -14,7 +15,7 @@ class SalesforceClientTest(unittest.TestCase):
         sf = SalesforceClient(connection_config_filepath=config_file)
         # check if the Salesforce connection has the base_url method and that it is not None
         assert hasattr(sf.connection, 'base_url')
-        print(f"sf connection: {sf.connection.base_url}")
+        # print(f"sf connection: {sf.connection.base_url}")
         assert sf.connection.base_url is not None
 
 
@@ -39,7 +40,8 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
     # @pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_search_and_create_and_delete_account(self):
-        test_account_name = 'Scrumptious Ice Cream'
+        r = random.randrange(1, 5000, 2)
+        test_account_name = 'Scrumptious Ice Cream' + str(r)
         account = self.sf.find_account_by_name(test_account_name)
         # The first time should not have any results
         assert not account
@@ -61,7 +63,6 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # Find the record
         account = self.sf.find_account_by_name(test_account_name)
-        print(f"hasdlfkjasdlfkjasdflkj {account}")
         assert account['Id'] == account_id
 
         # now delete it to cleanup
@@ -70,7 +71,8 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
     # @pytest.mark.skip(reason="Need to confirm that this is a valid test")
     def test_update_contact_and_account(self):
-        test_account_name = 'A Fake Account'
+        r = random.randrange(1, 5000, 2)
+        test_account_name = 'A Fake Account' + str(r)
         details = {
             'Type': 'Office',
             'Phone': '555-867-5309',
@@ -93,22 +95,22 @@ class SalesforceIntegrationTest(unittest.TestCase):
         # create contact (associated with account)
         details = {
             'AccountId': account_id,
-            'LastName': 'Richard Hendrick'
+            'LastName': 'Richard Hendrick' + str(r)
         }
         if self.contact_record_type:
             details['RecordTypeID'] = self.contact_record_type
 
-        self.sf.create_contact('user@company.com', **details)
+        self.sf.create_contact('user' + str(r) + '@company.com', **details)
         # retrieve contact
-        contact = self.sf.find_contact_by_email('user@company.com')
+        contact = self.sf.find_contact_by_email('user' + str(r) + '@company.com')
         assert contact['AccountId'] == account_id
 
         # update contact (can't change email)
         details = {
             'AccountId': account_id,
-            'LastName': 'Russ Hanneman'
+            'LastName': 'Russ Hanneman' + str(r)
         }
-        self.sf.create_or_update_contact_on_account('user@company.com', **details)
+        self.sf.create_or_update_contact_on_account('user' + str(r) + '@company.com', **details)
         assert contact['AccountId'] == account_id
 
         # now delete it to cleanup
