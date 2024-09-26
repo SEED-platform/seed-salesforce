@@ -32,7 +32,7 @@ class SalesforceIntegrationTest(unittest.TestCase):
         self.test_email = "a-user@somecompany.com"
         self.test_benchmark_name = "Example Benchmarking"
         self.account_record_type = None
-        self.contact_record_type = "01256000003A9ZN"
+        self.contact_record_type = "0124p000000ZwnEAAS"
 
         return super().setUp()
 
