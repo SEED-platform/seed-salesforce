@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.1.2
+
+Updated Python compatibility for v3.9-v3.13, and enabled MyPy
+
 ## Version 0.1.1
 
 Updated Python compatibility for v3.9-v3.12, and reformatted with Ruff

@@ -8,7 +8,6 @@ source =
 
 [report]
 omit =
-    .tox/*
     tests/*
 
 # Regexes for lines to exclude from consideration

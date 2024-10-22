@@ -73,20 +73,6 @@ class SalesforceClient:
             connection_params = json.load(file)
         return connection_params
 
-    def render_mappings(self, template_name: str, context: dict) -> dict:
-        """Render the mappings template.
-
-        Args:
-            template_name (str): name of the template file to render
-            context (dict): context to render the template with
-
-        Returns:
-            dict: rendered mappings in a dictionary format, meaning that the
-            rendered file is loaded into memory and returned as a dictionary.
-        """
-        rendered = self._template_env.get_template(template_name).render(context)
-        return json.loads(rendered)
-
     def list_objects(self) -> list:
         """List all objects in salesforce db
         Returns:
@@ -177,7 +163,7 @@ class SalesforceClient:
         """
         try:
             return self.connection.Benchmark__c.get(benchmark_id)
-        except BaseException:
+        except BaseException:  # noqa: BLE001
             raise Exception("Error retrieving benchmark by ID")
 
     def update_benchmark(self, salesforce_benchmark_id, **kwargs) -> dict:
@@ -304,7 +290,7 @@ class SalesforceClient:
         """
         try:
             return self.connection.Property__c.get(property_id)
-        except BaseException:
+        except BaseException:  # noqa: BLE001
             raise Exception("Error retrieving property by ID")
 
     def get_account_by_account_id(self, account_id: str) -> dict:
@@ -489,7 +475,7 @@ class SalesforceClient:
 
         return {}
 
-    def create_or_update_contact_on_account(self, contact_email: str, **kwargs) -> dict:
+    def create_or_update_contact_on_account(self, contact_email: str, **kwargs) -> None:
         # find the contact
         contact = self.find_contact_by_email(contact_email)
 
@@ -499,8 +485,6 @@ class SalesforceClient:
         else:
             # update contact with name and account Id, etc?
             contact = self.update_contact(contact["Id"], **kwargs)
-
-        return None
 
     def create_custom_field(self, object_name: str, field_name: str, length: int, description: str) -> dict:
         """Right now this only creates a new string field of "LongTextArea"
