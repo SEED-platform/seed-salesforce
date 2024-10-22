@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
         with:
@@ -26,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.12"]
+        python-version: ["3.9", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -37,16 +40,14 @@ jobs:
       - name: Install and configure Poetry
         uses: abatilo/actions-poetry@v3
         with:
-          poetry-version: 1.8.3
+          poetry-version: 1.8.4
       - name: Install dependencies with Poetry
         run: |
-          poetry --version
+          pip install --upgrade pip
           poetry install
       - name: Save Salesforce config from secrets
         run: |
           echo "${{ secrets.SALESFORCE_CONFIG }}" > salesforce-config-dev.json
-      - name: Run PyTest
+      - name: Run pytest
         run: |
           poetry run pytest
-    # mypy --install-types --non-interactive --show-error-codes .
-  # mypy:
