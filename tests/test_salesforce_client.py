@@ -170,9 +170,13 @@ class SalesforceIntegrationTest(unittest.TestCase):
 
         # can you retrieve by "Salesforce Benchmark ID" custom field?
         print(" ...retrieving benchmark by Salesforce Benchmark ID...")
-        bench_by_custom_id = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
+        bench_by_custom_id = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
-        assert bench_by_custom_id["Id"] == benchmark_id
+        # this is no longer necessarily true since we are not retrieving by the actual record ID,
+        # but rather a custom field that should be unique but is not necessarily the record ID
+        actual_id = bench_by_custom_id["Id"]
+        # assert that bench_by_custom_id has the same Id as the original benchmark
+        assert bench_by_custom_id["Salesforce_Benchmark_ID__c"] == salesforce_benchmark_id
 
         # can you update a benchmark field?
         print(" ...updating benchmark...")
@@ -180,13 +184,13 @@ class SalesforceIntegrationTest(unittest.TestCase):
         energy_star_score = benchmark["ENERGY_STAR_Score__c"]
         new_energy_star_score = 20
         args = {"ENERGY_STAR_Score__c": new_energy_star_score}
-        bench_updated = self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        bench_updated = self.sf.update_benchmark(actual_id, **args)
         print(f"benchmark updated: {bench_updated}")
 
         # retrieve again to see if it was updated
-        bench2 = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
+        bench2 = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         assert bench2["ENERGY_STAR_Score__c"] == new_energy_star_score
 
         # restore value
         args["ENERGY_STAR_Score__c"] = energy_star_score
-        self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        self.sf.update_benchmark(actual_id, **args)
