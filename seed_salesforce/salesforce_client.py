@@ -162,9 +162,9 @@ class SalesforceClient:
             rec = self.get_benchmark_by_id(benchmark_exist["records"][0]["Id"])
             return rec
         elif len(benchmark_exist["records"]) > 1:
-            # there are multiple properties with the same name, raise error
+            # there are multiple properties with the same custom ID, raise error
             raise Exception(
-                f"Failed to return Benchmark {custom_id_value}...multiple benchmarks with that name found",
+                f"Failed to return Benchmark {custom_id_value}...multiple benchmarks with that custom ID found",
             )
         else:
             # there is no property, return empty dict

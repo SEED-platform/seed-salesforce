@@ -171,10 +171,10 @@ class SalesforceIntegrationTest(unittest.TestCase):
         print(" ...retrieving benchmark by Salesforce Benchmark ID...")
         bench_by_custom_id = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
-        # this is no longer necessarily true since we are not retrieving by the actual record ID,
+        # We are not retrieving by the actual record ID,
         # but rather a custom field that should be unique but is not necessarily the record ID
         actual_id = bench_by_custom_id["Id"]
-        # assert that bench_by_custom_id has the same Id as the original benchmark
+        # assert that bench_by_custom_id has the same Salesforce Benchmark Id as the original custom ID
         assert bench_by_custom_id["Salesforce_Benchmark_ID__c"] == salesforce_benchmark_id
 
         # can you update a benchmark field?
