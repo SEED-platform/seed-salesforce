@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -147,8 +148,13 @@ class SalesforceClient:
             ...
         """
 
+        # Validate field name to prevent SQL injection
+        # Field names in Salesforce should only contain alphanumeric characters, underscores, and end with __c for custom fields
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*(__c)?$", custom_id_name):
+            raise ValueError(f"Invalid field name: {custom_id_name}")
+
         benchmark_exist = self.connection.query(
-            format_soql(f"Select Id from Benchmark__c where {custom_id_name} = {{}}", custom_id_value),
+            format_soql(f"Select Id from Benchmark__c where {custom_id_name} = {{}}", custom_id_value),  # noqa: S608
         )
         if len(benchmark_exist["records"]) == 1:
             # if there is a single record, then it exist, but
@@ -210,7 +216,6 @@ class SalesforceClient:
             # return benchmark
             return updated_record
         else:
-
             raise Exception(
                 f"Failed to update Benchmark {salesforce_benchmark_id} with error: {updated_record['errors']}",
             )
@@ -318,7 +323,7 @@ class SalesforceClient:
         """
         soql_query = "SELECT Id, Name FROM Account"
         results = self.connection.query_all(soql_query)
-        return results['records']
+        return results["records"]
 
     def get_contacts(self) -> list:
         """Get all contacts in salesforce
@@ -328,7 +333,7 @@ class SalesforceClient:
         """
         soql_query = "SELECT Id, Name, Email FROM Contact"
         results = self.connection.query_all(soql_query)
-        return results['records']
+        return results["records"]
 
     def get_account_by_account_id(self, account_id: str) -> dict:
         """Return the account by the account ID.

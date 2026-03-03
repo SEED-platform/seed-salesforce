@@ -165,10 +165,9 @@ class SalesforceIntegrationTest(unittest.TestCase):
         benchmark = self.sf.get_first_benchmark()
         print(f" Benchmark: {benchmark}")
         assert benchmark is not None
-        benchmark_id = benchmark["Id"]
-        salesforce_benchmark_id = benchmark["Salesforce_Benchmark_ID__c"]
 
         # can you retrieve by "Salesforce Benchmark ID" custom field?
+        salesforce_benchmark_id = benchmark["Salesforce_Benchmark_ID__c"]
         print(" ...retrieving benchmark by Salesforce Benchmark ID...")
         bench_by_custom_id = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
