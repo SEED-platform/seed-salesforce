@@ -1,4 +1,4 @@
-# Copyright (c) Alliance for Sustainable Energy, LLC. See also https://github.com/seed-platform/seed-salesforce/blob/develop/LICENSE.md
+# Copyright (c) Alliance for Energy Innovation, LLC. See also https://github.com/seed-platform/seed-salesforce/blob/develop/LICENSE.md
 
 # -*- coding: utf-8 -*-
 """

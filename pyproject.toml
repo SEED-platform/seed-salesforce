@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "seed-salesforce"
-version = "0.2.0"
+version = "0.2.1"
 description = "Package for connecting SEED data to Salesforce"
 authors = ["Nicholas Long <nicholas.long@nrel.gov>", "Katherine Fleming <katherine.fleming@nrel.gov>"]
 license = "BSD-3-Clause"
 
-readme = "README.md"
+readme = ["README.md", "LICENSE.md"]
 
 homepage = "https://seed-platform.org"
 repository = "https://github.com/seed-platform/seed-salesforce"
@@ -18,23 +18,30 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
 ]
 packages = [
     { include = "seed_salesforce" }
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.13"
+python = ">=3.9, <3.15"
 python-dateutil = "*"
 simple-salesforce = "^1.12.6"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.11.2"
 pre-commit = "^3.8.0"
-pytest = "^7.1.2"
-pytest-cov = "^4.0.0"
-ruff = "^0.6.7"
+pytest = "^8.0.0"
+pytest-cov = "^5.0.0"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--verbose",
+    "-s"
+]
+testpaths = ["tests"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core==2.2.1"]
 build-backend = "poetry.core.masonry.api"
