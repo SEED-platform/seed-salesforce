@@ -165,14 +165,17 @@ class SalesforceIntegrationTest(unittest.TestCase):
         benchmark = self.sf.get_first_benchmark()
         print(f" Benchmark: {benchmark}")
         assert benchmark is not None
-        benchmark_id = benchmark["Id"]
-        salesforce_benchmark_id = benchmark["Salesforce_Benchmark_ID__c"]
 
         # can you retrieve by "Salesforce Benchmark ID" custom field?
+        salesforce_benchmark_id = benchmark["Salesforce_Benchmark_ID__c"]
         print(" ...retrieving benchmark by Salesforce Benchmark ID...")
-        bench_by_custom_id = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
+        bench_by_custom_id = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         print(f" benchmark by custom id: {bench_by_custom_id}")
-        assert bench_by_custom_id["Id"] == benchmark_id
+        # We are not retrieving by the actual record ID,
+        # but rather a custom field that should be unique but is not necessarily the record ID
+        actual_id = bench_by_custom_id["Id"]
+        # assert that bench_by_custom_id has the same Salesforce Benchmark Id as the original custom ID
+        assert bench_by_custom_id["Salesforce_Benchmark_ID__c"] == salesforce_benchmark_id
 
         # can you update a benchmark field?
         print(" ...updating benchmark...")
@@ -180,13 +183,13 @@ class SalesforceIntegrationTest(unittest.TestCase):
         energy_star_score = benchmark["ENERGY_STAR_Score__c"]
         new_energy_star_score = 20
         args = {"ENERGY_STAR_Score__c": new_energy_star_score}
-        bench_updated = self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        bench_updated = self.sf.update_benchmark(actual_id, **args)
         print(f"benchmark updated: {bench_updated}")
 
         # retrieve again to see if it was updated
-        bench2 = self.sf.get_benchmark_by_custom_id(salesforce_benchmark_id)
+        bench2 = self.sf.get_benchmark_by_custom_id("Salesforce_Benchmark_ID__c", salesforce_benchmark_id)
         assert bench2["ENERGY_STAR_Score__c"] == new_energy_star_score
 
         # restore value
         args["ENERGY_STAR_Score__c"] = energy_star_score
-        self.sf.update_benchmark(salesforce_benchmark_id, **args)
+        self.sf.update_benchmark(actual_id, **args)

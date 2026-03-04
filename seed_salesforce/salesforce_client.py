@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -129,13 +130,15 @@ class SalesforceClient:
         else:
             raise Exception("Failed to return a Benchmark")
 
-    def get_benchmark_by_custom_id(self, salesforce_benchmark_id: str) -> dict:
-        """Return the benchmark by the Salesforce Benchmark ID.
+    def get_benchmark_by_custom_id(self, custom_id_name: str, custom_id_value: str) -> dict:
+        """Return the benchmark by the custom Salesforce Benchmark ID.
 
         Args:
-            salesforce_benchmark_id (str): Salesforce Benchmark ID of the property to return
-            Note: this is not necessarily the Benchmark ID (it's a separate field)
-            # TODO: make this configurable?
+            custom_id_name (str): Name of the custom ID field
+            custom_id_value (str): Value of the custom ID field
+            Note: this is not necessarily the Benchmark ID (it's a separate field that should be unique
+            and serves as the "key" for retrieving the benchmark, but it is not necessarily the actual
+            record ID in Salesforce)
 
         Returns:
             dict:  OrderedDict([('attributes',
@@ -145,8 +148,13 @@ class SalesforceClient:
             ...
         """
 
+        # Validate field name to prevent SQL injection
+        # Field names in Salesforce should only contain alphanumeric characters, underscores, and end with __c for custom fields
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*(__c)?$", custom_id_name):
+            raise ValueError(f"Invalid field name: {custom_id_name}")
+
         benchmark_exist = self.connection.query(
-            format_soql("Select Id from Benchmark__c where Salesforce_Benchmark_ID__c = {}", salesforce_benchmark_id),
+            format_soql(f"Select Id from Benchmark__c where {custom_id_name} = {{}}", custom_id_value),  # noqa: S608
         )
         if len(benchmark_exist["records"]) == 1:
             # if there is a single record, then it exist, but
@@ -154,9 +162,9 @@ class SalesforceClient:
             rec = self.get_benchmark_by_id(benchmark_exist["records"][0]["Id"])
             return rec
         elif len(benchmark_exist["records"]) > 1:
-            # there are multiple properties with the same name, raise error
+            # there are multiple properties with the same custom ID, raise error
             raise Exception(
-                f"Failed to return Benchmark {salesforce_benchmark_id}...multiple benchmarks with that name found",
+                f"Failed to return Benchmark {custom_id_value}...multiple benchmarks with that custom ID found",
             )
         else:
             # there is no property, return empty dict
@@ -306,6 +314,26 @@ class SalesforceClient:
             return self.connection.Property__c.get(property_id)
         except BaseException:
             raise Exception("Error retrieving property by ID")
+
+    def get_accounts(self) -> list:
+        """Get all accounts in salesforce
+
+        Returns:
+            list: list of accounts in salesforce
+        """
+        soql_query = "SELECT Id, Name FROM Account"
+        results = self.connection.query_all(soql_query)
+        return results["records"]
+
+    def get_contacts(self) -> list:
+        """Get all contacts in salesforce
+
+        Returns:
+            list: list of contacts in salesforce
+        """
+        soql_query = "SELECT Id, Name, Email FROM Contact"
+        results = self.connection.query_all(soql_query)
+        return results["records"]
 
     def get_account_by_account_id(self, account_id: str) -> dict:
         """Return the account by the account ID.

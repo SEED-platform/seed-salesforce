@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "seed-salesforce"
-version = "0.1.1"
+version = "0.2.0"
 description = "Package for connecting SEED data to Salesforce"
 authors = ["Nicholas Long <nicholas.long@nrel.gov>", "Katherine Fleming <katherine.fleming@nrel.gov>"]
 license = "BSD-3-Clause"
@@ -28,7 +28,7 @@ python = ">=3.9, <3.13"
 python-dateutil = "*"
 simple-salesforce = "^1.12.6"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.11.2"
 pre-commit = "^3.8.0"
 pytest = "^7.1.2"

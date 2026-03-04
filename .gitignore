@@ -99,3 +99,4 @@ salesforce-config*.json
 !salesforce-config-example.json
 seed-config*.json
 !seed-config-example.json
+example_usage.py
