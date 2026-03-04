@@ -6,7 +6,7 @@ The SEED Salesforce connection enables data exchange between a SEED instance and
 
 Clone this repository, then install the poetry-based dependencies.
 
-```
+```shell
 pip install poetry
 poetry install
 ```
@@ -17,16 +17,15 @@ The Salesforce configuration file is needed for this library to function correct
 
 #### Salesforce
 
-Copy `salesforce-config-example.json` to `salesforce-config-dev.json` and fill
-in with the correct credentials. The format of the Salesforce should contain the following:
+Copy `salesforce-config-example.json` to `salesforce-config-dev.json` and fill in with the correct credentials. The format of the Salesforce should contain the following:
 
-```
+```json
 {
-    "instance": "https://<url>.lightning.force.com",
-    "username": "user@company.com",
-    "password": "secure-password",
-    "security_token": "secure-token"
-    "domain": ""
+  "instance": "https://<url>.lightning.force.com",
+  "username": "user@company.com",
+  "password": "secure-password",
+  "security_token": "secure-token",
+  "domain": ""
 }
 ```
 
@@ -38,7 +37,7 @@ Make sure to add and configure the Salesforce configuration file. Note that it m
 
 Run the tests using:
 
-```
+```shell
 poetry run pytest
 ```
 
@@ -48,12 +47,12 @@ The credentials are stored in a GitHub Action Secret. Add the following with cor
 
 Note that double quotes must be escaped.
 
-```
+```text
 {
-    \"instance\": \"https://<environment>.lightning.force.com\",
-    \"username\": \"user@somedomain.com\",
-    \"password\": \"alongpassword!asdf\",
-    \"security_token\": \"access1key2with3numbers\",
-    \"domain\": \"test\"
+  \"instance\": \"https://<environment>.lightning.force.com\",
+  \"username\": \"user@somedomain.com\",
+  \"password\": \"alongpassword!asdf\",
+  \"security_token\": \"access1key2with3numbers\",
+  \"domain\": \"test\"
 }
 ```

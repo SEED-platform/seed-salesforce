@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.2.1
+
+Updated Python compatibility for v3.9-v3.14, and enabled MyPy
+
 ## Version 0.2.0
 
 Added a method to look up a benchmark with a custom ID name / value pair
